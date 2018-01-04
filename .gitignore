@@ -1,0 +1,14 @@
+# Setting file
+embeddedSystem/settings.py
+*.pyc
+
+# test database
+simple_test_db
+db.sqlite3
+
+# env
+env/
+venv/
+
+# ide
+.idea/

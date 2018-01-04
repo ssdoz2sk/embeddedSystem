@@ -1,0 +1,9 @@
+1. 根據類別屬性 Project / Device / Sensor 的 _id 產生　channel
+    回該類別下的 Sensor Data
+
+2. Device Post data 使用 rw-${sensor_id}
+     不僅上傳，也提供傳送指令
+
+3. 設計 device key 提供上傳用
+
+4. social login
