@@ -4,9 +4,8 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from project.models import Project, Device, Sensor, Data
-from project.serializer import ProjectSerializer, DeviceSerializer, SensorSerializer, DataSerializer, \
-    DeviceReadSerializer
+from project.models import Project, Device
+from project.serializer import ProjectSerializer, DeviceSerializer, DeviceReadSerializer
 
 import logging
 
@@ -144,81 +143,18 @@ class DeviceDetail(views.APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class SensorList(views.APIView):
-    throttle_classes = ()
-    permission_classes = (permissions.IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, JSONWebTokenAuthentication)
 
-    serializer_class = SensorSerializer
-
-    def get(self, request):
-        device_id = request.GET['d_id']
-        sensor = Sensor.objects.filter(device=device_id).all()
-        serializer = self.serializer_class(sensor, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data, context={'request':request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
-
-class SensorDetail(views.APIView):
-    throttle_classes = ()
-    permission_classes = (permissions.IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, JSONWebTokenAuthentication)
-
-    serializer_class = SensorSerializer
-
-    def get(self, request, pk):
-        sensor = Sensor.objects.filter(pk=pk).first()
-        serializer = self.serializer_class(sensor, many=False)
-        value = Data.objects(sensor=pk).order_by('-created_at').limit(20)
-
-        data_serializer = DataSerializer(value, many=True)
-        sensor_data = data_serializer.data
-        sensor_data.reverse()
-
-        data = serializer.data
-        data['device'] = sensor.device.name
-        data['project'] = sensor.device.project.name
-        data['data'] = sensor_data
-
-        return Response(data)
-
-    def put(self, request, pk):
-        sensor = Sensor.objects.filter(pk=pk).first()
-        serializer = self.serializer_class(sensor, data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
-
-    def patch(self, request, pk):
-        sensor = Sensor.objects.filter(pk=pk).first()
-        serializer = self.serializer_class(sensor, partial=True, data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
-
-    def delete(self, request, pk):
-        project = Sensor.objects.filter(pk=pk).first()
-        project.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class DataView(views.APIView):
-    throttle_classes = ()
-    permission_classes = ()
-    authentication_classes = (TokenAuthentication, )
-
-    serializer_class = DataSerializer
-
-    def post(self, request, token):
-        serializer = self.serializer_class(data=request.data, context={'token': token})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(status=status.HTTP_201_CREATED)
+# class DataView(views.APIView):
+#     throttle_classes = ()
+#     permission_classes = ()
+#     authentication_classes = (TokenAuthentication, )
+#
+#     serializer_class = DataSerializer
+#
+#     def post(self, request, token):
+#         serializer = self.serializer_class(data=request.data, context={'token': token})
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+#
+#         return Response(status=status.HTTP_201_CREATED)
 

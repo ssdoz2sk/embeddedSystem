@@ -11,10 +11,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import mongoengine
-from django.urls import reverse_lazy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -41,8 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_mongoengine',
-    'rest_framework_docs',
     'channels',
     'social_django',
     'account',
@@ -85,17 +82,15 @@ WSGI_APPLICATION = 'embeddedSystem.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-MONGODB_DATABASES = {
-    "default": {
-        "name": "embeddedSystem",
-        "host": "localhost",
-        "port": 27017,
-        "tz_aware": True,  # if you use timezones in django (USE_TZ = True)
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'embeddedSystem',
+        'USER': 'embeddedSystem',
+        'PASSWORD': 'PASSWORD',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            'sql_mode': 'traditional',
+        }
     }
 }
 
@@ -135,21 +130,17 @@ REDIS_OPTIONS = {
     'DB': 0
 }
 
-USE_REDIS = True
 
+ASGI_APPLICATION = 'embeddedSystem.routing.application'
 # Channel settings
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": ['redis://{}:{}'.format(REDIS_OPTIONS['HOST'],
-                                             REDIS_OPTIONS['PORT'])]
+            "hosts": [("127.0.0.1", 6379)],
         },
-        "ROUTING": "embeddedSystem.routing.channel_routing"
-    }
+    },
 }
-
-CHANNELS_WS_PROTOCOLS = ["graphql-ws", ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -164,7 +155,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -172,20 +163,15 @@ APPEND_SLASH = False
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-mongoengine.connect(
-    db="embeddedSystem",
-    host="localhost",
-)
-
 # AUTH_USER_MODEL = 'account.ActUser'
 
 LOGIN_REDIRECT_URL = reverse_lazy('rest_social_auth')
+
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
-
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '774699433210-4cvh1eqfvfr0e8q525jht86e420vgh53.apps.googleusercontent.com' # Google Consumer Key
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'IjLVFwcZEXK15gAOXinHdxv6' # Google Consumer Secret

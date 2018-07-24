@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from rest_framework_mongoengine import serializers as mongo_serializers
 
-from project.models import Project, Device, Sensor, Data
+from project.models import Project, Device
 import logging
 
 logger = logging.Logger(__name__)
@@ -58,45 +57,26 @@ class DeviceReadSerializer(serializers.ModelSerializer):
         model = Device
         fields = ['id', 'name', 'description', 'project', 'access_token']
 
-
-
-class SensorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sensor
-        fields = ['id', 'name', 'device', 'last_update']
-
-    def create(self, validated_data):
-        sensor = Sensor.create_sensor(name=validated_data['name'],
-                                      device=validated_data['device'])
-
-        return sensor
-
-    def update(self, instance, validated_data):
-        sensor = Sensor.update_sensor(instance,
-                                      name=validated_data['name'])
-
-        return sensor
-
-
-class DataSerializer(mongo_serializers.DocumentSerializer):
-    class Meta:
-        model = Data
-        fields = ['id', 'sensor', 'value', 'created_at']
-
-    def create(self, validated_data):
-        sensor = validated_data['sensor']
-        value = validated_data['value']
-        try:
-            value = float(value)
-        except ValueError:
-            pass
-
-        data = Data.create_data(sensor=sensor, value=value)
-
-        return data
-
-    def validate(self, data):
-        sensor_c = Sensor.objects.filter(id=data['sensor'], device__access_token=self.context['token']).count()
-        if sensor_c == 0:
-            raise serializers.ValidationError("sensor or token error")
-        return data
+#
+# class DataSerializer(mongo_serializers.DocumentSerializer):
+#     class Meta:
+#         model = Data
+#         fields = ['id', 'sensor', 'value', 'created_at']
+#
+#     def create(self, validated_data):
+#         sensor = validated_data['sensor']
+#         value = validated_data['value']
+#         try:
+#             value = float(value)
+#         except ValueError:
+#             pass
+#
+#         data = Data.create_data(sensor=sensor, value=value)
+#
+#         return data
+#
+#     def validate(self, data):
+#         sensor_c = Sensor.objects.filter(id=data['sensor'], device__access_token=self.context['token']).count()
+#         if sensor_c == 0:
+#             raise serializers.ValidationError("sensor or token error")
+#         return data
