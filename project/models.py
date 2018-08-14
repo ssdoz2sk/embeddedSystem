@@ -4,11 +4,9 @@ from datetime import datetime
 import json
 
 import secrets
-from bson import ObjectId
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils import timezone
-
-from djongo import models
 
 import logging
 
@@ -17,7 +15,7 @@ logger.level = logging.DEBUG
 
 
 class Project(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     creater = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
@@ -50,11 +48,11 @@ class Project(models.Model):
 
 
 class Device(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     project = models.ForeignKey(Project, related_name='devices', on_delete=models.CASCADE)
-    access_token = models.CharField(max_length=50)
+    access_token = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(default=timezone.now,
                                       verbose_name='date joined')
     updated_at = models.DateTimeField(default=timezone.now,
@@ -87,3 +85,38 @@ class Device(models.Model):
     @staticmethod
     def check_access_token_is_valid(token):
         return Device.objects.filter(access_token=token).count() != 0
+
+
+class Sensor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    showname = models.CharField(max_length=200)
+    device = models.ForeignKey(Device, related_name='sensors', on_delete=models.CASCADE)
+    last_upload = models.DateTimeField(null=True, blank=True, default=None)
+    created_at = models.DateTimeField(default=timezone.now,
+                                      verbose_name='date joined')
+    updated_at = models.DateTimeField(default=timezone.now,
+                                      verbose_name='date changed')
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def create_sensor(cls, name, showname, device):
+        now = datetime.now()
+        sensor = cls(name=name, showname=showname, device=device,
+                     created_at=now, updated_at=now)
+        sensor.save()
+
+        return sensor
+
+    def update_sensor(self, name, showname):
+        now = datetime.now()
+
+        self.name = name
+        self.showname = showname
+        self.updated_at = now
+
+        self.save()
+
+        return self
