@@ -122,6 +122,29 @@ class DataSerializer(serializers.Serializer):
         return data
 
 
+class DataMqttSerializer(serializers.Serializer):
+    device = serializers.CharField(required=True)
+    sensor_name = serializers.CharField(required=True)
+    value = serializers.CharField(required=True)
+
+    def save(self):
+        device = Device.objects.get(pk=self.validated_data['device'])
+        sensor = Sensor.objects.get(device=device, name=self.validated_data['sensor_name'])
+        value = self.validated_data['value']
+
+        try:
+            value = float(value)
+        except:
+            pass
+
+        mongo_client = mongoClient()
+        collection = mongo_client.sensor_data
+        if not collection.find_one({'sensor': sensor.pk}):
+            collection.insert({'sensor': sensor.pk, 'data': []})
+        if sensor:
+            collection.update({'sensor': sensor.pk}, {'$push': {'data': {sensor.name: value, '_upload': timezone.now()}}})
+
+
 class DataReadSerializer(serializers.Serializer):
     sensor = serializers.UUIDField()
     offset = serializers.IntegerField(required=False)

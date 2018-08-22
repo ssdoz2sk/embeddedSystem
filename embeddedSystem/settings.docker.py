@@ -22,10 +22,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '6uwrim)@(0#(mdc$de88=%c3r+r(g$rvtgcoy)(4)*f851sb$b'
+
+with open(os.path.join(BASE_DIR, "config", "secret.key"), "r") as f:
+    SECRET_KEY = f.read()
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -84,10 +87,10 @@ WSGI_APPLICATION = 'embeddedSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'embeddedSystem',
-        'USER': 'embeddedSystem',
-        'PASSWORD': 'PASSWORD',
-        'HOST': '127.0.0.1',
+        'NAME': os.environ.get('MYSQL_DATABASE', 'embeddedSystem'),
+        'USER': os.environ.get('MYSQL_USER', 'embeddedSystem'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'PASSWORD'),
+        'HOST': os.environ.get('MYSQL_HOST', 'embeddedSystem-mariadb'),
         'PORT': '3306',
         'OPTIONS': {
             'sql_mode': 'traditional',
@@ -125,9 +128,9 @@ REST_FRAMEWORK = {
 }
 
 MONGODB_OPTIOINS = {
-    'HOST': '127.0.0.1',
-    'PORT': 27017,
-    'DB': 'embeddedSystem',
+    'HOST': os.environ.get('MONGO_HOST', 'embeddedSystem-mongodb'),
+    'PORT': os.environ.get('MONGO_PORT', 27017),
+    'DB': os.environ.get('MONGO_DATABASE', 'embeddedSystem'),
 }
 
 
@@ -175,6 +178,8 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '774699433210-4cvh1eqfvfr0e8q525jht86e420vgh53.apps.googleusercontent.com' # Google Consumer Key
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'IjLVFwcZEXK15gAOXinHdxv6' # Google Consumer Secret
+
+MQTT_IP = 'embeddedSystem-mosquitto'
 
 LOGGING = {
     'version': 1,

@@ -6,3 +6,4 @@ channels==2.1.2
 channels_redis
 pymongo==3.7.1
 mysqlclient
+paho-mqtt==1.3.1
