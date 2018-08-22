@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'social_django',
     'account',
     'project',
+    'mqtt',
 ]
 
 MIDDLEWARE = [
@@ -123,11 +124,10 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Redis
-REDIS_OPTIONS = {
+MONGODB_OPTIOINS = {
     'HOST': '127.0.0.1',
-    'PORT': 6379,
-    'DB': 0
+    'PORT': 27017,
+    'DB': 'embeddedSystem',
 }
 
 
@@ -175,3 +175,41 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '774699433210-4cvh1eqfvfr0e8q525jht86e420vgh53.apps.googleusercontent.com' # Google Consumer Key
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'IjLVFwcZEXK15gAOXinHdxv6' # Google Consumer Secret
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'base': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '%(asctime)s - %(levelname)s - %(name)s - %(pathname)s - %(message)s',
+        }
+    },
+    'handlers': {
+        'web': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'base'
+        },
+        'mqtt': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'base'
+        }
+    },
+    'loggers': {
+        'web-logger': {
+            'handlers': ['web'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'mqtt-logger': {
+            'handlers': ['mqtt'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
+    },
+    'filters': {
+        # TODO
+    },
+}
