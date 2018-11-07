@@ -1,8 +1,6 @@
 import uuid
 from datetime import datetime
 
-import json
-
 import secrets
 from django.contrib.auth.models import User
 from django.db import models
@@ -92,6 +90,7 @@ class Sensor(models.Model):
     name = models.CharField(max_length=200)
     showname = models.CharField(max_length=200)
     device = models.ForeignKey(Device, related_name='sensors', on_delete=models.CASCADE)
+    data_type = models.CharField(max_length=100, default='string')
     last_upload = models.DateTimeField(null=True, blank=True, default=None)
     created_at = models.DateTimeField(default=timezone.now,
                                       verbose_name='date joined')
@@ -102,9 +101,9 @@ class Sensor(models.Model):
         return self.name
 
     @classmethod
-    def create_sensor(cls, name, showname, device):
+    def create_sensor(cls, name, showname, data_type, device):
         now = datetime.now()
-        sensor = cls(name=name, showname=showname, device=device,
+        sensor = cls(name=name, showname=showname, device=device, data_type=data_type,
                      created_at=now, updated_at=now)
         sensor.save()
 
@@ -120,3 +119,29 @@ class Sensor(models.Model):
         self.save()
 
         return self
+
+
+class SensorData(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name='sensor_data')
+    double_data = models.FloatField(null=True, blank=True, default=None)
+    int_data = models.BigIntegerField(null=True, blank=True, default=None)
+    bool_data = models.NullBooleanField(null=True, blank=True, default=None)
+    string_data = models.TextField(null=True, blank=True, default=None)
+    datetime = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def timestamp(self):
+        return int(self.datetime.timestamp())
+
+    @property
+    def data(self):
+        if self.sensor.data_type == 'double':
+            return self.double_data
+        if self.sensor.data_type == 'int':
+            return self.int_data
+        if self.sensor.data_type == 'bool':
+            return self.bool_data
+        if self.sensor.data_type == 'string':
+            return self.string_data
+        return None
