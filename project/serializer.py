@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from project.models import Project, Device, Sensor
+from project.models import Project, Device, Sensor, SensorData
 import logging
 
 from project.utils import mongoClient
@@ -16,7 +16,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     # Use this method for the custom field
     class Meta:
         model = Project
-        fields = ['id', 'name', 'description', 'creater', 'device_count']
+        fields = ['id', 'name', 'description', 'creater', 'device_count', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         project = Project.create_project(name=validated_data['name'],
@@ -70,12 +70,13 @@ class DeviceReadSerializer(serializers.ModelSerializer):
 class SensorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor
-        fields = ['id', 'name', 'showname', 'device', 'updated_at', 'last_upload']
+        fields = ['id', 'name', 'showname', 'device', 'data_type', 'updated_at', 'last_upload']
 
     def create(self, validated_data):
         sensor = Sensor.create_sensor(name=validated_data['name'],
                                       showname=validated_data['showname'],
-                                      device=validated_data['device'])
+                                      device=validated_data['device'],
+                                      data_type=validated_data['data_type'])
 
         return sensor
 
@@ -155,10 +156,7 @@ class DataReadSerializer(serializers.Serializer):
         sensor = validated_data['sensor']
         offset = validated_data.get('offset', 0)
 
-        mongo_client = mongoClient()
-        collection = mongo_client.sensor_data
-
-        data = collection.find_one({'sensor': sensor}, {'data': {'$slice': [-100 * offset, 100]}, '_id': 0})
+        data = SensorData.objects.filter(sensor=sensor).order_by("-datetime")[offset:100+offset]
 
         if not data:
             data = {}
