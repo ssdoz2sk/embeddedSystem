@@ -133,17 +133,20 @@ class DataMqttSerializer(serializers.Serializer):
         sensor = Sensor.objects.get(device=device, name=self.validated_data['sensor_name'])
         value = self.validated_data['value']
 
+        double_value, int_value, bool_value, string_value = None, None, None, None
         try:
-            value = float(value)
-        except:
+            if sensor.data_type == 'double':
+                double_value = float(value)
+            elif sensor.data_type == 'int':
+                int_value = int(value)
+            elif sensor.data_type == 'bool':
+                bool_value = bool(value)
+            elif sensor.data_type == 'string':
+                string_value = value
+        except ValueError:
             pass
-
-        mongo_client = mongoClient()
-        collection = mongo_client.sensor_data
-        if not collection.find_one({'sensor': sensor.pk}):
-            collection.insert({'sensor': sensor.pk, 'data': []})
-        if sensor:
-            collection.update({'sensor': sensor.pk}, {'$push': {'data': {sensor.name: value, '_upload': timezone.now()}}})
+        data = SensorData(sensor=sensor, double_data=double_value, int_data=int_value, bool_data=bool_value, string_data=string_value)
+        data.save()
 
 
 class DataReadSerializer(serializers.Serializer):
